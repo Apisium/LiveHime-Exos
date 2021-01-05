@@ -5,7 +5,6 @@ import cn.apisium.livehime.exos.backend.BasicBackend
 import cn.apisium.livehime.exos.song.ExoSong
 import java.io.File
 import java.net.URI
-import java.util.function.Consumer
 
 class LiveHimeExos private constructor(private val backend: Backend) {
     companion object {
@@ -18,6 +17,10 @@ class LiveHimeExos private constructor(private val backend: Backend) {
 
     fun play(uri: URI, whenFinish: Runnable = Runnable { }) {
         backend().play(ExoSong(uri, whenFinish))
+    }
+
+    fun play(uri: () -> URI, whenFinish: Runnable = Runnable { }) {
+        backend().play(ExoSong(uri(), whenFinish))
     }
 
     fun play(file: File, whenFinish: Runnable = Runnable { }) {
