@@ -61,7 +61,7 @@ class BasicBackend : Backend, LineListener {
 
     override fun update(event: LineEvent?) {
         if (event?.type == LineEvent.Type.STOP && !stoppedByUs) {
-            stoppedByUs = true
+            stoppedByUs = false
             song?.whenFinish?.run()
         }
     }
