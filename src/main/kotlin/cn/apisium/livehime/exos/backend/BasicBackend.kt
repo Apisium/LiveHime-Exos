@@ -1,21 +1,28 @@
 package cn.apisium.livehime.exos.backend
 
 import cn.apisium.livehime.exos.song.ExoSong
-import java.lang.UnsupportedOperationException
 import javax.sound.sampled.*
-
 
 class BasicBackend : Backend, LineListener {
     var clip: Clip = AudioSystem.getClip()
-    var song: ExoSong? = null
 
     init {
         clip.addLineListener(this)
     }
 
-    override fun isAsync(): Boolean {
-        return false
-    }
+    var song: ExoSong? = null
+
+    private var stoppedByUs = false
+    private var paused = false
+    override var position: Long
+        get() = this.clip.microsecondPosition
+        set(value) {
+            this.clip.microsecondPosition = value
+        }
+
+    private var pausedPosition = 0L
+
+    override fun isAsync() = true
 
     override fun createStream(song: ExoSong): AudioInputStream {
         this.song = song
@@ -37,16 +44,29 @@ class BasicBackend : Backend, LineListener {
         return stream
     }
 
+    override fun song(): ExoSong? = this.song
+
+    override fun length(): Long = this.clip.microsecondLength
+    
     override fun pause() {
-        throw UnsupportedOperationException("Clip should not be paused")
+        if (clip.isActive && clip.isOpen && clip.isRunning && !paused) {
+            paused = true
+            stoppedByUs = true
+            pausedPosition = clip.microsecondPosition
+            clip.stop()
+        }
     }
 
-    override fun resume() { /* Do nothing */
+    override fun resume() {
+        if (clip.isOpen && paused) {
+            paused = false
+            position = pausedPosition
+            clip.start()
+        }
     }
 
-    override fun isPaused(): Boolean = false
+    override fun isPaused(): Boolean = this.paused
 
-    var stoppedByUs = false
     override fun playStream(stream: AudioInputStream) {
         if (clip.isRunning) {
             stoppedByUs = true
@@ -55,6 +75,8 @@ class BasicBackend : Backend, LineListener {
         if (clip.isOpen) {
             clip.close()
         }
+        paused = false
+        pausedPosition = 0L
         clip.open(stream)
         clip.start()
     }
