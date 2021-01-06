@@ -1,3 +1,4 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 /*
@@ -8,6 +9,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
  */
 plugins {
     kotlin("jvm") version "1.4.20"
+    id("com.github.johnrengelman.shadow") version "6.1.0"
 }
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
@@ -17,9 +19,42 @@ dependencies {
     implementation("org.arquillian.ape:arquillian-ape-spi:2.0.0-alpha.7")
 }
 repositories {
+    maven("http://maven.aliyun.com/nexus/content/groups/public/")
     maven("https://dl.bintray.com/kotlin/kotlin-eap")
     mavenCentral()
 }
+
+val jar by tasks.getting(Jar::class) {
+    manifest {
+        attributes["Main-Class"] = "cn.apisium.livehime.exos.MainKt"
+    }
+}
+
+tasks {
+    build {
+        dependsOn(shadowJar)
+    }
+}
+tasks.withType<ShadowJar> {
+    // Excludes testing
+    exclude("junit/**")
+    exclude("junit")
+
+    exclude("arquillian_1_0.xsd")
+
+    relocate("com.jcraft", "cn.apisium.libraries.com.jcraft")
+    relocate("javazoom", "cn.apisium.libraries.javazoom")
+    relocate("kotlin", "cn.apisium.libraries.kotlin")
+    relocate("org.arquillian", "cn.apisium.libraries.org.arquillian")
+    relocate("org.intellij", "cn.apisium.libraries.org.intellij")
+    relocate("org.jboss", "cn.apisium.libraries.org.jboss")
+    relocate("org.jetbrains", "cn.apisium.libraries.org.jetbrains")
+    relocate("org.jflac", "cn.apisium.libraries.org.jflac")
+    relocate("org.tritonus", "cn.apisium.libraries.org.tritonus")
+
+    mergeServiceFiles()
+}
+
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.kotlinOptions {
     jvmTarget = "1.8"
