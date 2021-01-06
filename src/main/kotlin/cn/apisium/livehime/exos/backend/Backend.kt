@@ -2,7 +2,6 @@ package cn.apisium.livehime.exos.backend
 
 import cn.apisium.livehime.exos.song.ExoSong
 import javax.sound.sampled.AudioInputStream
-import javax.sound.sampled.DataLine
 
 interface Backend {
     fun isAsync(): Boolean
