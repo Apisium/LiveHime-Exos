@@ -4,13 +4,13 @@ import cn.apisium.livehime.exos.song.ExoSong
 import javax.sound.sampled.*
 
 class BasicBackend : Backend, LineListener {
-    var clip: Clip = AudioSystem.getClip()
+    private var clip: Clip = AudioSystem.getClip()
 
     init {
         clip.addLineListener(this)
     }
 
-    var song: ExoSong? = null
+    private var song: ExoSong? = null
 
     private var stoppedByUs = false
     private var paused = false
@@ -60,6 +60,7 @@ class BasicBackend : Backend, LineListener {
     override fun resume() {
         if (clip.isOpen && paused) {
             paused = false
+            stoppedByUs = false
             position = pausedPosition
             clip.start()
         }
