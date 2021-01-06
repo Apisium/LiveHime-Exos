@@ -12,7 +12,11 @@ interface Backend {
 
     var position: Long
         get() = 0L
-        set(value) = TODO()
+        set(value) = TODO("should be set to $value but not implemented")
+
+    var volume: Float
+        get() = 0F
+        set(value) = TODO("should be set to $value but not implemented")
 
     fun pause()
     fun resume()
@@ -31,5 +35,4 @@ interface Backend {
             pause()
         }
     }
-
 }

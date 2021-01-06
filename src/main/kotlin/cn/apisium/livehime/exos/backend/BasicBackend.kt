@@ -2,6 +2,9 @@ package cn.apisium.livehime.exos.backend
 
 import cn.apisium.livehime.exos.song.ExoSong
 import javax.sound.sampled.*
+import kotlin.math.ln
+import kotlin.math.pow
+
 
 class BasicBackend : Backend, LineListener {
     private var clip: Clip = AudioSystem.getClip()
@@ -19,6 +22,31 @@ class BasicBackend : Backend, LineListener {
         set(value) {
             this.clip.microsecondPosition = value
         }
+
+    private var volumeControl: FloatControl? = null
+
+    override var volume: Float
+        get() {
+            volumeControl =
+                if (volumeControl == null) clip.getControl(FloatControl.Type.MASTER_GAIN) as FloatControl else volumeControl
+            return volumeControl?.value?.let { toPercentageVolume(it) } ?: 0F
+        }
+        set(value) {
+            volumeControl =
+                if (volumeControl == null) clip.getControl(FloatControl.Type.MASTER_GAIN) as FloatControl else volumeControl
+            volumeControl?.value = toDBVolume(value)
+        }
+
+    private fun toDBVolume(percentage: Float): Float = limit(20 * ln(percentage))
+    private fun toPercentageVolume(dB: Float): Float = Math.E.pow(dB.toDouble() / 20).toFloat()
+
+    private fun limit(level: Float): Float {
+        return if (volumeControl == null) {
+            0F
+        } else {
+            volumeControl!!.maximum.coerceAtMost(volumeControl!!.minimum.coerceAtLeast(level))
+        }
+    }
 
     private var pausedPosition = 0L
 
@@ -47,7 +75,7 @@ class BasicBackend : Backend, LineListener {
     override fun song(): ExoSong? = this.song
 
     override fun length(): Long = this.clip.microsecondLength
-    
+
     override fun pause() {
         if (clip.isActive && clip.isOpen && clip.isRunning && !paused) {
             paused = true
