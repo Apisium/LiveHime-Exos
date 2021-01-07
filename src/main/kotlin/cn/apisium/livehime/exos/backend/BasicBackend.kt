@@ -104,8 +104,11 @@ class BasicBackend : Backend, LineListener {
         if (clip.isOpen) {
             clip.close()
         }
+        
         paused = false
+        stoppedByUs = false
         pausedPosition = 0L
+
         clip.open(stream)
         clip.start()
     }
